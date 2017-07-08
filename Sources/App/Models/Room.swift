@@ -11,7 +11,6 @@ final class Room: Model {
     static let idKey = "id"
     static let nameKey = "name"
 
-    /// Creates a new Post
     init(name: String) {
         self.name = name
     }

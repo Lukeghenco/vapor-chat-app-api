@@ -24,7 +24,13 @@ extension Droplet {
                 }
             }
             
+            ws.onBinary = { ws, data in
+                print(data)
+            }
+            
             ws.onText = { ws, text in
+                print(roomsChannel.connections)
+                print(text)
                 let json = try JSON(bytes: Array(text.utf8))
                 print(json)
                 
@@ -38,7 +44,11 @@ extension Droplet {
                             let newRoom = try Room(json: roomJSON)
                             try newRoom.save()
                             let room = try newRoom.makeJSON()
-                            roomsChannel.send(meta: room)
+                            var jsonResponse = JSON()
+                            try jsonResponse.set("message", "Room was successfully added!")
+                            try jsonResponse.set("type", "ADD_ROOM")
+                            try jsonResponse.set("room", room)
+                            roomsChannel.send(meta: jsonResponse)
                         }
                     case "CLOSE_ROOM":
                         if let roomJSON = json["room"],
@@ -48,6 +58,7 @@ extension Droplet {
                                 var jsonResponse = JSON()
                                 try jsonResponse.set("message", "The \(room.name) room was just closed")
                                 try jsonResponse.set("roomId", roomId)
+                                try jsonResponse.set("type", "CLOSE_ROOM")
                                 roomsChannel.send(meta: jsonResponse)
                             } else {
                                 var jsonResponse = JSON()
