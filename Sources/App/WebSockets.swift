@@ -1,7 +1,7 @@
 import Vapor
 import Foundation
 
-let rooms = Rooms()
+let roomsChannel = RoomsChannel()
 let users = ["luke", "jim", "alex", "sarah", "sue", "alexis", "sandra"]
 
 extension Droplet {
@@ -13,7 +13,7 @@ extension Droplet {
             
             let randomIndex = Int(arc4random_uniform(UInt32(users.count)))
             let randomUser = users[randomIndex]
-            rooms.connections[randomUser] = ws;
+            roomsChannel.connections[randomUser] = ws;
             
             print("Connected to Rooms socket")
             
@@ -25,47 +25,43 @@ extension Droplet {
             }
             
             ws.onText = { ws, text in
-                print(rooms.connections)
-                
                 let json = try JSON(bytes: Array(text.utf8))
                 print(json)
                 
                 if let type = json["type"] {
                     switch type {
                     case "GET_ROOMS":
-                        let posts = try Post.all().makeJSON()
-                        rooms.send(meta: posts)
+                        let rooms = try Room.all().makeJSON()
+                        roomsChannel.send(meta: rooms)
                     case "ADD_ROOM":
                         if let roomJSON = json["room"] {
-                            let newPost = try Post(json: roomJSON)
-                            try newPost.save()
-                            let post = try newPost.makeJSON()
-                            rooms.send(meta: post)
+                            let newRoom = try Room(json: roomJSON)
+                            try newRoom.save()
+                            let room = try newRoom.makeJSON()
+                            roomsChannel.send(meta: room)
                         }
                     case "CLOSE_ROOM":
                         if let roomJSON = json["room"],
                             let roomId = roomJSON.object?["id"]?.int {
-                            if let post = try Post.find(roomId) {
-                                try post.delete()
+                            if let room = try Room.find(roomId) {
+                                try room.delete()
                                 var jsonResponse = JSON()
-                                try jsonResponse.set("message", "The \(post.name) was just closed")
+                                try jsonResponse.set("message", "The \(room.name) room was just closed")
                                 try jsonResponse.set("roomId", roomId)
-                                rooms.send(meta: jsonResponse)
+                                roomsChannel.send(meta: jsonResponse)
                             } else {
                                 var jsonResponse = JSON()
                                 try jsonResponse.set("message", "Unable to destroy room")
-                                rooms.send(meta: jsonResponse)
+                                roomsChannel.send(meta: jsonResponse)
                             }
-                            
                         }
                     default:
-                        rooms.send(meta: "No Type was sent with the request")
+                        roomsChannel.send(meta: "No Type was sent with the request")
                     }
                 }
                 
                 ws.onClose = { ws, _, _, _ in
-                    
-                    rooms.connections.removeValue(forKey: randomUser)
+                    roomsChannel.connections.removeValue(forKey: randomUser)
                 }
             }
         }

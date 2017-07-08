@@ -1,6 +1,6 @@
 import Vapor
 
-class Rooms {
+class RoomsChannel {
     var connections: [String: WebSocket]
     
     func send(meta: JSON) {
