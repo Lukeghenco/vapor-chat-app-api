@@ -8,15 +8,15 @@ final class Post: Model {
     // MARK: Properties and database keys
     
     /// The content of the post
-    var content: String
+    var name: String
     
     /// The column names for `id` and `content` in the database
     static let idKey = "id"
-    static let contentKey = "content"
+    static let nameKey = "name"
 
     /// Creates a new Post
-    init(content: String) {
-        self.content = content
+    init(name: String) {
+        self.name = name
     }
 
     // MARK: Fluent Serialization
@@ -24,13 +24,13 @@ final class Post: Model {
     /// Initializes the Post from the
     /// database row
     init(row: Row) throws {
-        content = try row.get(Post.contentKey)
+        name = try row.get(Post.nameKey)
     }
 
     // Serializes the Post to the database
     func makeRow() throws -> Row {
         var row = Row()
-        try row.set(Post.contentKey, content)
+        try row.set(Post.nameKey, name)
         return row
     }
 }
@@ -43,7 +43,7 @@ extension Post: Preparation {
     static func prepare(_ database: Database) throws {
         try database.create(self) { builder in
             builder.id()
-            builder.string(Post.contentKey)
+            builder.string(Post.nameKey)
         }
     }
 
@@ -63,14 +63,14 @@ extension Post: Preparation {
 extension Post: JSONConvertible {
     convenience init(json: JSON) throws {
         try self.init(
-            content: json.get(Post.contentKey)
+            name: json.get(Post.nameKey)
         )
     }
     
     func makeJSON() throws -> JSON {
         var json = JSON()
         try json.set(Post.idKey, id)
-        try json.set(Post.contentKey, content)
+        try json.set(Post.nameKey, name)
         return json
     }
 }
@@ -92,8 +92,8 @@ extension Post: Updateable {
         return [
             // If the request contains a String at key "content"
             // the setter callback will be called.
-            UpdateableKey(Post.contentKey, String.self) { post, content in
-                post.content = content
+            UpdateableKey(Post.nameKey, String.self) { post, name in
+                post.name = name
             }
         ]
     }

@@ -1,8 +1,6 @@
 import Vapor
 import HTTP
 
-/// Here we have a controller that helps facilitate
-/// RESTful interactions with our Posts table
 final class PostController: ResourceRepresentable {
     /// When users call 'GET' on '/posts'
     /// it should return an index of all available posts
@@ -59,7 +57,7 @@ final class PostController: ResourceRepresentable {
 
         // Update the post with all of the properties from
         // the new post
-        post.content = new.content
+        post.name = new.name
         try post.save()
 
         // Return the updated post
