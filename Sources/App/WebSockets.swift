@@ -11,7 +11,7 @@ extension Droplet {
         
         socket("rooms") { req, ws in
             
-            let randomIndex = Int(arc4random_uniform(UInt32(users.count)))
+            let randomIndex = roomsChannel.connections.count
             let randomUser = users[randomIndex]
             roomsChannel.connections[randomUser] = ws;
             
